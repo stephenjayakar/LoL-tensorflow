@@ -37,8 +37,8 @@ class Data:
     def __init__(self):
         self.tx = []
         self.ty = []
-        for i in range(1, 10):
-            data = open("data/matches{}.json".format(i), 'r', errors="ignore")
+        for i in range(1, 200):
+            data = open("big_data/matches{}.json".format(i), 'r', errors="ignore")
             j = json.load(data)
             data.close()            
             for match in j['matches']:
@@ -46,15 +46,17 @@ class Data:
                 self.tx.append(f[:-2])
                 self.ty.append(f[-2:])
 
+                
         self.px = []
         self.py = []
-        data = open("data/matches10.json")
-        j = json.load(data)    
-        data.close()
-        for match in j['matches']:
-            f = match_to_features(match)
-            self.px.append(f[:-2])
-            self.py.append(f[-2:])
+        for i in range(200, 205):
+            data = open("big_data/matches{}.json".format(i), 'r', errors="ignore")
+            j = json.load(data)    
+            data.close()
+            for match in j['matches']:
+                f = match_to_features(match)
+                self.px.append(f[:-2])
+                self.py.append(f[-2:])
 
     def next_batch(self, batch_size: int):
         x = []

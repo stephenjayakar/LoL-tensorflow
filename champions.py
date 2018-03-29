@@ -8,14 +8,14 @@ FILE.close()
 championJSON = championJSON["data"]
 championTable = {}
 
-FILE = open("data/championFeatures.json")
+FILE = open("data/championFeatures.json", "r")
 championFeatures = json.load(FILE)
 FILE.close()
 
 
 for name in championJSON.keys():
-    key = int(championJSON[name]['key'])
-    championTable[key] = name    
+    key = int(championJSON[name]['id'])
+    championTable[key] = name
 
 def id_to_name(x: int) -> str:
     return championTable[x]

@@ -13,9 +13,9 @@ tf.logging.set_verbosity(tf.logging.INFO)
 
 data = data_process.Data()
 
-learning_rate = 0.01
+learning_rate = 0.001
 # epochs = 40
-num_steps = 900
+num_steps = 3000
 batch_size = 50
 display_step = 50
 
