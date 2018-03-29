@@ -30,7 +30,7 @@ def request(url: str):
         status = response.status_code
         print(status)
         if status == 429:
-            input()
+            time.sleep(10)
     return json.loads(response.text)
 
 def name_to_id(summoner: str):
@@ -118,7 +118,7 @@ def match_ids_to_JSON(batch_size: int):
 def crawl(start: str, n: int):
     summoners = {}
     matches = set()
-    crawlSummoners(start)
+    crawlSummoners(start, n)
     crawlMatches()
     match_ids_to_JSON(50)
     
