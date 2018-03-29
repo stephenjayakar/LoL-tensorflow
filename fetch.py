@@ -4,7 +4,7 @@ import time
 
 headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36'}
 base_url = "https://na1.api.riotgames.com/"
-seed = "Imaqtpie"
+seed = "Søren Bjerg"
 
 FILE = open("api.txt", 'r')
 api = FILE.read()
@@ -16,7 +16,7 @@ FILE.close()
 FILE = open("data/summoners.json", 'r')
 summoners = json.load(FILE)
 FILE.close()
-seed = list(summoners.keys())[-1]
+# seed = list(summoners.keys())[-1]
 
 FILE = open("data/matchIds.txt", 'r')
 matches = set(eval(FILE.read()))
@@ -93,6 +93,11 @@ def crawlMatches():
         matchIds = id_to_match_ids(sid)
         for mid in matchIds:
             matches.add(mid)
+
+def store_summoners():
+    FILE = open("data/summoners.json", 'w')
+    FILE.write(json.dumps(summoners))
+    FILE.close()
 
 def match_ids_to_JSON(batch_size: int):
     m = []
