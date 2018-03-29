@@ -13,15 +13,15 @@ tf.logging.set_verbosity(tf.logging.INFO)
 
 data = data_process.Data()
 
-learning_rate = 0.001
+learning_rate = 0.01
 # epochs = 40
-num_steps = 3000
-batch_size = 50
+num_steps = 1000
+batch_size = 100
 display_step = 50
 
 n_hidden_1 = 128
 n_hidden_2 = 128
-# n_hidden_3 = 64
+# n_hidden_3 = 128
 num_input = 280
 num_classes = 2 # output
 
@@ -32,6 +32,7 @@ Y = tf.placeholder("float", [None, num_classes])
 def neural_net(x):
     layer_1 = tf.layers.dense(x, n_hidden_1)
     layer_2 = tf.layers.dense(layer_1, n_hidden_2)
+    # layer_3 = tf.layers.dense(layer_2, n_hidden_3)
     out_layer = tf.layers.dense(layer_2, num_classes)
     return out_layer
 

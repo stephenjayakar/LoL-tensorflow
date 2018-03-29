@@ -49,7 +49,7 @@ class Data:
                 
         self.px = []
         self.py = []
-        for i in range(200, 205):
+        for i in range(200, 272):
             data = open("big_data/matches{}.json".format(i), 'r', errors="ignore")
             j = json.load(data)    
             data.close()

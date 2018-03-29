@@ -28,7 +28,9 @@ def request(url: str):
     while (status != 200):
         response = requests.get(url, headers=headers)
         status = response.status_code
-        print(status)        
+        print(status)
+        if status == 429:
+            input()
     return json.loads(response.text)
 
 def name_to_id(summoner: str):
@@ -69,11 +71,11 @@ def match_id_to_JSON(x: int):
     matchJSON = request(url)
     return matchJSON
 
-def crawlSummoners(summoner: str):
+def crawlSummoners(summoner: str, n: int):
     accountId = name_to_id(summoner)
     summoners[summoner] = accountId
     stack = [summoner]
-    while (len(stack) and len(summoners) < 200):
+    while (len(stack) and len(summoners) < n):
         summoner = stack.pop()
         accountId = summoners[summoner]
         matchIds = id_to_match_ids(accountId)
@@ -81,14 +83,14 @@ def crawlSummoners(summoner: str):
             names = match_id_to_names(matchId)
             for name in names:
                 if name not in summoners:
-                    print(name)
+                    # print(name)
                     summoners[name] = name_to_id(name)
                     stack.append(name)
 
 def crawlMatches():
     # first aggregate the matchIds
     for summoner in summoners.keys():
-        print(summoner)
+        # print(summoner)
         sid = summoners[summoner]
         matchIds = id_to_match_ids(sid)
         for mid in matchIds:
@@ -113,3 +115,10 @@ def match_ids_to_JSON(batch_size: int):
             m = []
         m.append(json.dumps(match_id_to_JSON(mid)))
         
+def crawl(start: str, n: int):
+    summoners = {}
+    matches = set()
+    crawlSummoners(start)
+    crawlMatches()
+    match_ids_to_JSON(50)
+    
