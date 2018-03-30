@@ -56,7 +56,7 @@ class Data:
     tx = None
     ty = None
     
-    def __init__(self, total_chunks, training_chunks=5):
+    def __init__(self, total_chunks, training_chunks=10):
         self.num_chunks = total_chunks - training_chunks
         # load the first chunk
         FILE = open("processed_data/data{}".format(self.chunk_index), 'r')

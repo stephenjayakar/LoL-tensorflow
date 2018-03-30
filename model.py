@@ -9,13 +9,14 @@ import matplotlib.pyplot as plt
 import json
 import data_process
 
+tf.reset_default_graph()
 tf.logging.set_verbosity(tf.logging.INFO)
 
 total_chunks = 64
 data = data_process.Data(total_chunks)
 
-learning_rate = 0.001
-epochs = 10
+learning_rate = 0.0005
+epochs = 5
 num_steps = 1000
 batch_size = 50
 display_step = 50
@@ -31,8 +32,8 @@ X = tf.placeholder("float", [None, num_input])
 Y = tf.placeholder("float", [None, num_classes])
 
 def neural_net(x):
-    layer_1 = tf.layers.dense(x, n_hidden_1)
-    layer_2 = tf.layers.dense(layer_1, n_hidden_2)
+    layer_1 = tf.layers.dense(x, n_hidden_1, activation=tf.nn.relu)
+    layer_2 = tf.layers.dense(layer_1, n_hidden_2, activation=tf.nn.relu)
     # layer_3 = tf.layers.dense(layer_2, n_hidden_3)
     out_layer = tf.layers.dense(layer_2, num_classes)
     return out_layer
@@ -48,8 +49,11 @@ accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
 
 init = tf.global_variables_initializer()
 
+saver = tf.train.Saver()
+
 with tf.Session() as sess:
     sess.run(init)
+    saver.restore(sess, "tmp/model.ckpt")
     pred_x, pred_y = data.test()
     
     for ep in range(1, epochs + 1):
@@ -72,5 +76,40 @@ with tf.Session() as sess:
 
     print("optimization finished")
     print("testing accuracy:", sess.run(accuracy, feed_dict={X: pred_x,
-                                                             Y: pred_y})
-    )
+                                                             Y: pred_y}))
+
+    # saving the model
+    save_path = saver.save(sess, "tmp/model.ckpt")
+    print("model saved!")
+    
+# with tf.Session() as sess:
+#     sess.run(init)
+#     saver.restore(sess, "tmp/model.ckpt")
+#     pred_x, pred_y = data.test()
+    
+#     for ep in range(1, epochs + 1):
+#         print("Epoch {}".format(ep))
+#         for step in range(1, num_steps + 1):
+#             batch_x, batch_y = data.next_batch(batch_size)
+#             if not batch_x:
+#                 break
+#             sess.run(train_op, feed_dict={X: batch_x, Y: batch_y})
+#             if step % display_step == 0 or step == 1:
+#                 loss, acc = sess.run([loss_op, accuracy], feed_dict={X: batch_x, Y: batch_y})
+#                 print("testing accuracy:", sess.run(accuracy, feed_dict={X: pred_x,
+#                                                              Y: pred_y})
+#                 )
+            
+#                 print("Step " + str(step) + ", Minibatch Loss= " + \
+#                       "{:.4f}".format(loss) + ", Training Accuracy= " + \
+#                       "{:.3f}".format(acc))
+#         data = data_process.Data(total_chunks)
+
+#     print("optimization finished")
+#     print("testing accuracy:", sess.run(accuracy, feed_dict={X: pred_x,
+#                                                              Y: pred_y}))
+
+#     # saving the model
+#     save_path = saver.save(sess, "tmp/model.ckpt")
+#     print("model saved!")
+    
