@@ -29,7 +29,7 @@ def request(url: str):
         response = requests.get(url, headers=headers)
         status = response.status_code
         print(status)
-        if status == 429:
+        if status != 200:
             time.sleep(10)
     return json.loads(response.text)
 
@@ -120,5 +120,5 @@ def crawl(start: str, n: int):
     matches = set()
     crawlSummoners(start, n)
     crawlMatches()
-    match_ids_to_JSON(50)
+    match_ids_to_JSON(101)
     

@@ -24,48 +24,85 @@ def match_to_features(match: dict):
     win = [win, 1 - win]
     features += win
     return features
-        
+
+
+# stores 100 matches in one file
+def process_matches(n: int):
+    counter = 0
+    matches = []
+    for i in range(n + 1):
+        FILE = open("big_data/matches{}.json".format(i), 'r', errors="ignore")
+        j = json.load(FILE)
+        FILE.close()
+        for match in j["matches"]:
+            features = match_to_features(match)
+            matches.append(features)
+            if len(matches) >= 100:
+                print("Chunk {}".format(counter))
+                # flush it to disk, clear
+                FILE = open("processed_data/data{}".format(counter), 'w')
+                FILE.write(str(matches))
+                FILE.close()
+                counter += 1
+                matches = []
         
 class Data:
-    index = 0
+    num_chunks = 0
+    chunk = None
+    chunk_index = 0
+    chunk_offset = 0
+
+    training_chunks = None
     tx = None
     ty = None
-
-    px = None
-    py = None
     
-    def __init__(self):
-        self.tx = []
-        self.ty = []
-        for i in range(1, 200):
-            data = open("big_data/matches{}.json".format(i), 'r', errors="ignore")
-            j = json.load(data)
-            data.close()            
-            for match in j['matches']:
-                f = match_to_features(match)
-                self.tx.append(f[:-2])
-                self.ty.append(f[-2:])
+    def __init__(self, total_chunks, training_chunks=5):
+        self.num_chunks = total_chunks - training_chunks
+        # load the first chunk
+        FILE = open("processed_data/data{}".format(self.chunk_index), 'r')
+        # maybe find another way to load a list from file :O 
+        self.chunk = eval(FILE.read())
+        FILE.close()
 
-                
-        self.px = []
-        self.py = []
-        for i in range(200, 272):
-            data = open("big_data/matches{}.json".format(i), 'r', errors="ignore")
-            j = json.load(data)    
-            data.close()
-            for match in j['matches']:
-                f = match_to_features(match)
-                self.px.append(f[:-2])
-                self.py.append(f[-2:])
+        self.training_chunks = []
+        # load test data
+        for i in range(training_chunks):
+            FILE = open("processed_data/data{}".format(self.num_chunks + i), 'r')
+            self.training_chunks += eval(FILE.read())
+            FILE.close()
 
     def next_batch(self, batch_size: int):
+        if self.chunk_index >= self.num_chunks:
+            return None, None
+        if self.chunk_offset < 0:
+            self.chunk_offset = 0
         x = []
         y = []
         for i in range(batch_size):
-            self.index = (self.index + i) % len(self.tx)
-            x.append(self.tx[self.index])
-            y.append(self.ty[self.index])
+            index = self.chunk_offset + i
+            if index >= len(self.chunk):
+                # advance chunk
+                self.chunk_offset = -i - 1
+                index = 0
+                self.chunk_index += 1
+                if self.chunk_index >= self.num_chunks:
+                    return None, None
+                FILE = open("processed_data/data{}".format(self.chunk_index), 'r')
+                self.chunk = eval(FILE.read())
+                FILE.close()
+            x.append(self.chunk[index][:-2])
+            y.append(self.chunk[index][-2:])
+        self.chunk_offset += batch_size
         return x, y
-            
+                
+
     def test(self):
-        return self.px, self.py
+        # if it hasn't been preprocessed
+        if not self.tx:
+            self.tx = []
+            self.ty = []
+            for match in self.training_chunks:
+                self.tx.append(match[:-2])
+                self.ty.append(match[-2:])
+                
+        return self.tx, self.ty

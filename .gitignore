@@ -1,4 +1,5 @@
 api.txt
 .DS_Store
 big_data
-
+processed_data
+__pycache__

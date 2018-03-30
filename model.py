@@ -11,12 +11,13 @@ import data_process
 
 tf.logging.set_verbosity(tf.logging.INFO)
 
-data = data_process.Data()
+total_chunks = 64
+data = data_process.Data(total_chunks)
 
-learning_rate = 0.01
-# epochs = 40
+learning_rate = 0.001
+epochs = 10
 num_steps = 1000
-batch_size = 100
+batch_size = 50
 display_step = 50
 
 n_hidden_1 = 128
@@ -51,19 +52,23 @@ with tf.Session() as sess:
     sess.run(init)
     pred_x, pred_y = data.test()
     
-    
-    for step in range(1, num_steps + 1):
-        batch_x, batch_y = data.next_batch(batch_size)
-        sess.run(train_op, feed_dict={X: batch_x, Y: batch_y})
-        if step % display_step == 0 or step == 1:
-            loss, acc = sess.run([loss_op, accuracy], feed_dict={X: batch_x, Y: batch_y})
-            print("testing accuracy:", sess.run(accuracy, feed_dict={X: pred_x,
+    for ep in range(1, epochs + 1):
+        print("Epoch {}".format(ep))
+        for step in range(1, num_steps + 1):
+            batch_x, batch_y = data.next_batch(batch_size)
+            if not batch_x:
+                break
+            sess.run(train_op, feed_dict={X: batch_x, Y: batch_y})
+            if step % display_step == 0 or step == 1:
+                loss, acc = sess.run([loss_op, accuracy], feed_dict={X: batch_x, Y: batch_y})
+                print("testing accuracy:", sess.run(accuracy, feed_dict={X: pred_x,
                                                              Y: pred_y})
-            )
+                )
             
-            print("Step " + str(step) + ", Minibatch Loss= " + \
-                  "{:.4f}".format(loss) + ", Training Accuracy= " + \
-                  "{:.3f}".format(acc))
+                print("Step " + str(step) + ", Minibatch Loss= " + \
+                      "{:.4f}".format(loss) + ", Training Accuracy= " + \
+                      "{:.3f}".format(acc))
+        data = data_process.Data(total_chunks)
 
     print("optimization finished")
     print("testing accuracy:", sess.run(accuracy, feed_dict={X: pred_x,
