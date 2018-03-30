@@ -8,6 +8,7 @@ import tensorflow as tf
 import matplotlib.pyplot as plt
 import json
 import data_process
+import champions
 
 tf.reset_default_graph()
 tf.logging.set_verbosity(tf.logging.INFO)
@@ -50,12 +51,13 @@ accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
 init = tf.global_variables_initializer()
 
 saver = tf.train.Saver()
+ 
+sess = tf.Session()
+sess.run(init)
+saver.restore(sess, "tmp/model.ckpt")
+pred_x, pred_y = data.test()
 
-with tf.Session() as sess:
-    sess.run(init)
-    saver.restore(sess, "tmp/model.ckpt")
-    pred_x, pred_y = data.test()
-    
+def train():
     for ep in range(1, epochs + 1):
         print("Epoch {}".format(ep))
         for step in range(1, num_steps + 1):
@@ -66,9 +68,8 @@ with tf.Session() as sess:
             if step % display_step == 0 or step == 1:
                 loss, acc = sess.run([loss_op, accuracy], feed_dict={X: batch_x, Y: batch_y})
                 print("testing accuracy:", sess.run(accuracy, feed_dict={X: pred_x,
-                                                             Y: pred_y})
-                )
-            
+                                                         Y: pred_y}))
+                
                 print("Step " + str(step) + ", Minibatch Loss= " + \
                       "{:.4f}".format(loss) + ", Training Accuracy= " + \
                       "{:.3f}".format(acc))
@@ -76,40 +77,30 @@ with tf.Session() as sess:
 
     print("optimization finished")
     print("testing accuracy:", sess.run(accuracy, feed_dict={X: pred_x,
-                                                             Y: pred_y}))
-
+                                                         Y: pred_y}))
     # saving the model
     save_path = saver.save(sess, "tmp/model.ckpt")
     print("model saved!")
-    
-# with tf.Session() as sess:
-#     sess.run(init)
-#     saver.restore(sess, "tmp/model.ckpt")
-#     pred_x, pred_y = data.test()
-    
-#     for ep in range(1, epochs + 1):
-#         print("Epoch {}".format(ep))
-#         for step in range(1, num_steps + 1):
-#             batch_x, batch_y = data.next_batch(batch_size)
-#             if not batch_x:
-#                 break
-#             sess.run(train_op, feed_dict={X: batch_x, Y: batch_y})
-#             if step % display_step == 0 or step == 1:
-#                 loss, acc = sess.run([loss_op, accuracy], feed_dict={X: batch_x, Y: batch_y})
-#                 print("testing accuracy:", sess.run(accuracy, feed_dict={X: pred_x,
-#                                                              Y: pred_y})
-#                 )
-            
-#                 print("Step " + str(step) + ", Minibatch Loss= " + \
-#                       "{:.4f}".format(loss) + ", Training Accuracy= " + \
-#                       "{:.3f}".format(acc))
-#         data = data_process.Data(total_chunks)
 
-#     print("optimization finished")
-#     print("testing accuracy:", sess.run(accuracy, feed_dict={X: pred_x,
-#                                                              Y: pred_y}))
+def predict():
+    redTeam = []
+    blueTeam = []
+    # blue team wins
+    defaultPred = [[1, 0]]
+    print("type champions from blue -> red, newline on each")
+    
+    for i in range(5):
+        redTeam.append(input())
+    for i in range(5):
+        blueTeam.append(input())
 
-#     # saving the model
-#     save_path = saver.save(sess, "tmp/model.ckpt")
-#     print("model saved!")
+    a = champions.team_to_features(redTeam)
+    b = champions.team_to_features(blueTeam)
+    # assert(sum(a) + sum(b) == 10)
+    acc = sess.run(accuracy, feed_dict={X: [a + b],
+                                        Y: defaultPred})
+    if acc > 0.5:
+        print("Blue team victory!")
+    else:
+        print("Red team victory!")
     
