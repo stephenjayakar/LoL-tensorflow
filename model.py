@@ -10,11 +10,22 @@ import json
 import data_process
 import champions
 
+# stackoverflow PReLU
+def parametric_relu(_x):
+  alphas = tf.get_variable('alpha', _x.get_shape()[-1],
+                       initializer=tf.constant_initializer(0.0),
+                        dtype=tf.float32)
+  pos = tf.nn.relu(_x)
+  neg = alphas * (_x - abs(_x)) * 0.5
+
+  return pos + neg
+
+activation = tf.nn.relu
+
 tf.reset_default_graph()
 tf.logging.set_verbosity(tf.logging.INFO)
 
 total_chunks = 64
-data = data_process.Data(total_chunks)
 
 learning_rate = 0.0005
 epochs = 5
@@ -33,9 +44,9 @@ X = tf.placeholder("float", [None, num_input])
 Y = tf.placeholder("float", [None, num_classes])
 
 def neural_net(x):
-    layer_1 = tf.layers.dense(x, n_hidden_1, activation=tf.nn.relu)
-    layer_2 = tf.layers.dense(layer_1, n_hidden_2, activation=tf.nn.relu)
-    # layer_3 = tf.layers.dense(layer_2, n_hidden_3)
+    layer_1 = tf.layers.dense(x, n_hidden_1, activation=activation)
+    layer_2 = tf.layers.dense(layer_1, n_hidden_2, activation=activation)
+    # layer_3 = tf.layers.dense(layer_2, n_hidden_3, activation=tf.nn.relu)
     out_layer = tf.layers.dense(layer_2, num_classes)
     return out_layer
 
@@ -54,11 +65,22 @@ saver = tf.train.Saver()
  
 sess = tf.Session()
 sess.run(init)
-saver.restore(sess, "tmp/model.ckpt")
-pred_x, pred_y = data.test()
+
+def restore():
+    saver.restore(sess, "tmp/model.ckpt")
+
+def save():
+    save_path = saver.save(sess, "tmp/model.ckpt")
+    print("model saved!")    
 
 def train():
+    accs = []
+    eps = []
+    pred_x = None
+    pred_y = None
     for ep in range(1, epochs + 1):
+        data = data_process.Data(total_chunks)
+        pred_x, pred_y = data.test()        
         print("Epoch {}".format(ep))
         for step in range(1, num_steps + 1):
             batch_x, batch_y = data.next_batch(batch_size)
@@ -67,20 +89,22 @@ def train():
             sess.run(train_op, feed_dict={X: batch_x, Y: batch_y})
             if step % display_step == 0 or step == 1:
                 loss, acc = sess.run([loss_op, accuracy], feed_dict={X: batch_x, Y: batch_y})
-                print("testing accuracy:", sess.run(accuracy, feed_dict={X: pred_x,
-                                                         Y: pred_y}))
+                
                 
                 print("Step " + str(step) + ", Minibatch Loss= " + \
                       "{:.4f}".format(loss) + ", Training Accuracy= " + \
                       "{:.3f}".format(acc))
-        data = data_process.Data(total_chunks)
+        a = sess.run(accuracy, feed_dict={X: pred_x, Y: pred_y})
+        accs.append(a)
+        eps.append(ep)
+        print("testing accuracy: ", a)
+
 
     print("optimization finished")
     print("testing accuracy:", sess.run(accuracy, feed_dict={X: pred_x,
-                                                         Y: pred_y}))
-    # saving the model
-    save_path = saver.save(sess, "tmp/model.ckpt")
-    print("model saved!")
+                                                             Y: pred_y}))
+    plt.plot(eps, accs, label="neural network")
+    plt.show()
 
 def predict():
     redTeam = []

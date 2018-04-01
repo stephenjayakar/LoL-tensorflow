@@ -2,13 +2,13 @@ N = 140
 
 import json
 
-FILE = open("data/champions.json")
+FILE = open("static_data/champions.json")
 championJSON = json.load(FILE)
 FILE.close()
 championJSON = championJSON["data"]
 championTable = {}
 
-FILE = open("data/championFeatures.json", "r")
+FILE = open("static_data/championFeatures.json", "r")
 championFeatures = json.load(FILE)
 FILE.close()
 
@@ -58,7 +58,7 @@ if __name__ == "__main__":
     # for name in names:
     #     dictionary[name] = counter
     #     counter += 1
-    # FILE = open("data/championFeatures.json", 'w')
+    # FILE = open("static_data/championFeatures.json", 'w')
     # FILE.write(json.dumps(dictionary))
     # FILE.close()
                               
